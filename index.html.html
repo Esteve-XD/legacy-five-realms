@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Legacy of the Five Realms — Prueba 01</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;overflow:hidden;background:#172b27;color:#f5f0dc;font-family:system-ui;touch-action:none}canvas{display:block;width:100vw;height:100vh}
+#hud{position:fixed;inset:12px;pointer-events:none;text-shadow:0 2px 5px #000}#obj{margin-top:8px;font-size:14px}
+#msg{display:none;position:absolute;top:22%;left:50%;transform:translateX(-50%);width:85%;padding:14px;background:#10201eee;border:1px solid #a9d7c4;border-radius:12px;text-align:center}
+#controls{position:fixed;bottom:18px;left:18px;right:18px;display:flex;justify-content:space-between;align-items:end}
+#pad{width:128px;height:128px;border:1px solid #ffffff88;border-radius:50%;background:#ffffff22;position:relative;touch-action:none}
+#nub{position:absolute;left:40px;top:40px;width:46px;height:46px;border-radius:50%;background:#d9eee0aa}
+button{border:1px solid #ffffff99;border-radius:50%;width:65px;height:65px;background:#28433ddd;color:white;font-weight:bold}
+#interact{width:76px;height:76px;background:#9c804ddd}
+#intro{position:fixed;inset:0;background:#091512ee;display:grid;place-items:center;text-align:center;padding:25px}
+#intro>div{max-width:440px}h1{font-size:clamp(28px,8vw,44px);line-height:1.05;letter-spacing:2px}
+#play{border:0;border-radius:30px;background:#b9d6bf;color:#172b27;width:auto;height:auto;padding:15px 28px;font-size:16px}
+.small{font-size:12px;color:#b6c9bb}
+</style>
+<canvas id="c"></canvas>
+<div id="hud"><b>LEGACY OF THE FIVE REALMS · PRUEBA 01</b><div id="obj">Objetivo: encuentra la luz turquesa.</div><div id="msg"></div></div>
+<div id="controls"><div id="pad"><div id="nub"></div></div><div><button id="jump">SALTAR</button> <button id="interact">EXAMINAR</button></div></div>
+<div id="intro"><div><div class="small">UNA AVENTURA COMIENZA</div><h1>LEGACY OF<br>THE FIVE REALMS</h1><p>Aren despierta en unas ruinas olvidadas. Una pequeña luz turquesa parece estar esperándolo...</p><p>Muévete, acércate a la esfera y pulsa <b>EXAMINAR</b>.</p><button id="play">COMENZAR PRUEBA</button><p class="small">Prototipo de exploración 2D · sin descargas adicionales</p></div></div>
+<script>
+const c=document.querySelector('#c'),g=c.getContext('2d');let W,H,D;
+function size(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;g.setTransform(D,0,0,D,0,0)}onresize=size;size();
+const p={x:230,y:390,z:0,v:0},orb={x:810,y:390},shard={x:1030,y:650};let started=false,found=false,keys={},joy={x:0,y:0},msgTime=0;
+const walls=[[350,220,180,28],[610,150,30,210],[760,260,180,28],[300,650,220,30],[620,720,30,150],[920,570,170,30],[1120,270,30,170]];
+function say(t){let m=document.querySelector('#msg');m.textContent=t;m.style.display='block';msgTime=260}
+function move(dx,dy){let nx=Math.max(30,Math.min(1270,p.x+dx)),ny=Math.max(30,Math.min(870,p.y+dy));for(let [x,y,w,h] of walls)if(nx+13>x&&nx-13<x+w&&ny+13>y&&ny-13<y+h)return;p.x=nx;p.y=ny}
+function interact(){if(Math.hypot(p.x-orb.x,p.y-orb.y)<80){say('Nyria: «¡Por fin! Llevaba mucho tiempo intentando despertarte. ¿Recuerdas tu nombre?»');return}if(!found&&Math.hypot(p.x-shard.x,p.y-shard.y)<80){found=true;document.querySelector('#obj').textContent='¡Fragmento de memoria recuperado!';say('Una visión: cinco luces brillan sobre un mundo antiguo. Nyria: «Esto solo es el principio, Aren».');return}say('No hay nada que examinar aquí. Busca la luz turquesa.')}
+function draw(){g.clearRect(0,0,W,H);let s=Math.min(W/760,H/560,1.2),cx=p.x-W/(2*s),cy=p.y-H/(2*s);g.save();g.scale(s,s);g.translate(-cx,-cy);
+g.fillStyle='#29463d';g.fillRect(0,0,1350,950);for(let y=0;y<950;y+=64)for(let x=0;x<1350;x+=64){g.fillStyle=((x+y)/64)%2?'#2d4b40':'#314f43';g.fillRect(x,y,62,62)}
+for(let [x,y,w,h] of walls){g.fillStyle='#687565';g.fillRect(x,y,w,h);g.fillStyle='#9a9b80';g.fillRect(x,y,w,6)}
+for(let i=0;i<9;i++){let x=450+(i%5)*105,y=390+Math.floor(i/5)*100;g.fillStyle='#89917e';g.fillRect(x-12,y-12,24,24)}
+if(!found){g.shadowBlur=24;g.shadowColor='#f4d98b';g.fillStyle='#f4d98b';g.beginPath();g.arc(shard.x,shard.y,11+Math.sin(Date.now()/200)*3,0,7);g.fill();g.shadowBlur=0;g.fillStyle='#f4e7b9';g.font='13px system-ui';g.textAlign='center';g.fillText('RECUERDO',shard.x,shard.y-26)}
+g.shadowBlur=28;g.shadowColor='#3be9dc';g.fillStyle='#45ded1';g.beginPath();g.arc(orb.x,orb.y,21+Math.sin(Date.now()/240)*3,0,7);g.fill();g.shadowBlur=0;g.fillStyle='#d7fff5';g.beginPath();g.arc(orb.x-6,orb.y-7,6,0,7);g.fill();g.fillStyle='#e9fff8';g.font='13px system-ui';g.fillText('NYRIA',orb.x,orb.y-36);
+g.fillStyle='#111e1b88';g.beginPath();g.ellipse(p.x,p.y+13,17,8,0,0,7);g.fill();g.fillStyle='#b3bda5';g.beginPath();g.arc(p.x,p.y-p.z,14,0,7);g.fill();g.fillStyle='#503a2c';g.beginPath();g.arc(p.x,p.y-p.z-5,14,Math.PI,Math.PI*2);g.fill();g.fillStyle='#d4c29b';g.fillRect(p.x-10,p.y-p.z+10,20,18);g.fillStyle='#694a34';g.fillRect(p.x-13,p.y-p.z+23,26,7);
+g.restore()}
+function frame(){if(started){let dx=(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0)+joy.x,dy=(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0)+joy.y,l=Math.hypot(dx,dy);if(l>1){dx/=l;dy/=l}move(dx*2.8,dy*2.8);if(p.z>0||p.v>0){p.z+=p.v;p.v-=.5;if(p.z<0){p.z=0;p.v=0}}if(msgTime>0&&!--msgTime)document.querySelector('#msg').style.display='none'}draw();requestAnimationFrame(frame)}frame();
+onkeydown=e=>{keys[e.key]=true;if(e.code==='Space'){e.preventDefault();if(!p.z)p.v=8}if(e.key==='e'||e.key==='Enter')interact()};onkeyup=e=>keys[e.key]=false;
+document.querySelector('#play').onclick=()=>{started=true;document.querySelector('#intro').style.display='none';say('Nyria: «Aren... ¿puedes oírme?» Acércate a la luz turquesa.')};
+document.querySelector('#interact').onclick=interact;document.querySelector('#jump').onclick=()=>{if(!p.z)p.v=8};
+let pad=document.querySelector('#pad'),nub=document.querySelector('#nub'),active=false;
+function joystick(e){let r=pad.getBoundingClientRect(),x=(e.clientX-r.left-r.width/2)/48,y=(e.clientY-r.top-r.height/2)/48,l=Math.hypot(x,y);if(l>1){x/=l;y/=l}joy={x,y};nub.style.left=(40+x*34)+'px';nub.style.top=(40+y*34)+'px'}
+pad.onpointerdown=e=>{active=true;pad.setPointerCapture(e.pointerId);joystick(e)};pad.onpointermove=e=>{if(active)joystick(e)};function release(){active=false;joy={x:0,y:0};nub.style.left='40px';nub.style.top='40px'}pad.onpointerup=release;pad.onpointercancel=release;
+</script></html>
